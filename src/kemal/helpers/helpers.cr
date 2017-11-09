@@ -134,7 +134,12 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
       end
     elsif request_headers.includes_word?("Accept-Encoding", "deflate") && config.is_a?(Hash) && config["gzip"]? == true && filesize > minsize && Kemal::Utils.zip_types(file_path)
       env.response.headers["Content-Encoding"] = "deflate"
-      Flate::Writer.open(env.response) do |deflate|
+      {% if compare_versions(Crystal::VERSION, "0.23.1") == 1  %}
+        # later that 0.23.1
+        Flate::Writer.open(env.response) do |deflate|
+      {% else %}
+        Flate::Writer.new(env.response) do |deflate|
+      {% end %}
         IO.copy(file, deflate)
       end
     else
