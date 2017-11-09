@@ -137,11 +137,13 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
       {% if compare_versions(Crystal::VERSION, "0.23.1") == 1  %}
         # later that 0.23.1
         Flate::Writer.open(env.response) do |deflate|
+          IO.copy(file, deflate)
+        end
       {% else %}
         Flate::Writer.new(env.response) do |deflate|
+          IO.copy(file, deflate)
+        end
       {% end %}
-        IO.copy(file, deflate)
-      end
     else
       env.response.content_length = filesize
       IO.copy(file, env.response)
